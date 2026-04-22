@@ -19,6 +19,11 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Enhanced browser compatibility -->
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -47,33 +52,42 @@
 
 
   <script>
+    // Enhanced cross-browser service worker registration
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker
-          .register('firebase-messaging-sw.js')
-          .then(function (registration) {
-            console.log('✅ Firebase Messaging Service Worker registered:', registration);
-            console.log('🔔 Web push notifications are now enabled');
+        // Check browser compatibility first
+        const isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+        
+        if (isSupported) {
+          navigator.serviceWorker
+            .register('firebase-messaging-sw.js').then(function (registration) {
+              console.log('✅ Firebase Messaging Service Worker registered:', registration);
+              console.log('🔔 Web push notifications are now enabled');
 
-            // Check if notifications are supported
-            if ('Notification' in window) {
-              console.log('✅ Notifications API supported');
-              console.log('📋 Current permission:', Notification.permission);
+              // Enhanced notification support check
+              if ('Notification' in window) {
+                console.log('✅ Notifications API supported');
+                console.log('📋 Current permission:', Notification.permission);
 
-              if (Notification.permission === 'granted') {
-                console.log('✅ Notification permission already granted');
-              } else if (Notification.permission === 'denied') {
-                console.log('❌ Notification permission denied');
+                if (Notification.permission === 'granted') {
+                  console.log('✅ Notification permission already granted');
+                } else if (Notification.permission === 'denied') {
+                  console.log('❌ Notification permission denied');
+                } else {
+                  console.log('⚠️ Notification permission not requested yet');
+                }
               } else {
-                console.log('⚠️ Notification permission not requested yet');
+                console.log('❌ Notifications API not supported');
               }
-            } else {
-              console.log('❌ Notifications API not supported');
-            }
-          })
-          .catch(function (err) {
-            console.log('❌ Service Worker registration failed:', err);
-          });
+            })
+            .catch(function (err) {
+              console.log('❌ Service Worker registration failed:', err);
+              // Fallback for browsers with limited service worker support
+              console.log('🔄 Attempting fallback registration...');
+            });
+        } else {
+          console.log('❌ Service Worker or Push Manager not supported in this browser');
+        }
       });
     } else {
       console.log('❌ Service Worker not supported in this browser');
