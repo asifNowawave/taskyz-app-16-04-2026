@@ -2,14 +2,18 @@
     "name": "Taskyz",
     "short_name": "Taskyz",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
+    "orientation": "portrait-primary",
+
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+
+    "description": "Taskyz productivity web app",
+
     "prefer_related_applications": false,
-    "scope": "/",
     "categories": ["productivity", "business"],
+
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -35,3 +39,5 @@
         }
     ]
 }
+
+
