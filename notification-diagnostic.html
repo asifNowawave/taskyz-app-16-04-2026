@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .status-box {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .status-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .status-error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .status-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .status-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .button-group {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .code-block {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .section {
+            margin: 25px 0;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Notification Diagnostic Tool</h1>
+        <p class="subtitle">Web Notification Problem Detector</p>
+
+        <div class="button-group">
+            <button onclick="runDiagnostics()">🔍 Run Full Diagnostics</button>
+            <button onclick="requestPermission()">🔐 Request Permission</button>
+            <button onclick="testNotification()">🧪 Test Notification</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let diagnosticResults = [];
+
+        function addResult(title, status, message, details = '') {
+            const result = { title, status, message, details };
+            diagnosticResults.push(result);
+            displayResults();
+        }
+
+        function displayResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            diagnosticResults.forEach(result => {
+                const statusClass = `status-${result.status}`;
+                const icon = result.status === 'success' ? '✅' : 
+                            result.status === 'error' ? '❌' : 
+                            result.status === 'warning' ? '⚠️' : 'ℹ️';
+
+                const div = document.createElement('div');
+                div.className = `status-box ${statusClass}`;
+                div.innerHTML = `
+                    <div><span class="icon">${icon}</span><strong>${result.title}</strong></div>
+                    <div style="margin-left: 34px; margin-top: 5px;">${result.message}</div>
+                    ${result.details ? `<div class="code-block">${result.details}</div>` : ''}
+                `;
+                resultsDiv.appendChild(div);
+            });
+        }
+
+        function clearResults() {
+            diagnosticResults = [];
+            displayResults();
+        }
+
+        async function runDiagnostics() {
+            clearResults();
+            
+            addResult('Diagnostic Started', 'info', 'Running comprehensive notification diagnostics...', '');
+
+            // 1. Check Browser
+            checkBrowser();
+
+            // 2. Check Notification API Support
+            checkNotificationSupport();
+
+            // 3. Check Permission Status
+            checkPermissionStatus();
+
+            // 4. Check Service Worker
+            await checkServiceWorker();
+
+            // 5. Check Firebase Config
+            checkFirebaseConfig();
+
+            // 6. Check Network
+            await checkNetwork();
+
+            // 7. Provide Recommendations
+            provideRecommendations();
+
+            addResult('Diagnostic Complete', 'success', 'All checks completed. Review results above.', '');
+        }
+
+        function checkBrowser() {
+            const userAgent = navigator.userAgent;
+            let browser = 'Unknown';
+            
+            if (userAgent.includes('Brave')) browser = 'Brave';
+            else if (userAgent.includes('Edg')) browser = 'Edge';
+            else if (userAgent.includes('Chrome')) browser = 'Chrome';
+            else if (userAgent.includes('Safari')) browser = 'Safari';
+            else if (userAgent.includes('Firefox')) browser = 'Firefox';
+
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(userAgent);
+            const platform = isMobile ? 'Mobile' : 'Desktop';
+
+            addResult(
+                'Browser Detection',
+                'info',
+                `Browser: ${browser} | Platform: ${platform}`,
+                `User Agent: ${userAgent.substring(0, 100)}...`
+            );
+
+            // Browser-specific warnings
+            if (browser === 'Brave') {
+                addResult(
+                    'Brave Browser Detected',
+                    'warning',
+                    'Brave has strict privacy settings. You may need to disable Shields.',
+                    'Click the lion icon and turn OFF Shields for this site.'
+                );
+            } else if (browser === 'Safari') {
+                addResult(
+                    'Safari Browser Detected',
+                    'warning',
+                    'Safari requires manual permission request and only supports foreground notifications.',
+                    'Background notifications will not work in Safari.'
+                );
+            }
+        }
+
+        function checkNotificationSupport() {
+            if ('Notification' in window) {
+                addResult(
+                    'Notification API',
+                    'success',
+                    'Notification API is supported in this browser.',
+                    'window.Notification = Available ✅'
+                );
+            } else {
+                addResult(
+                    'Notification API',
+                    'error',
+                    'Notification API is NOT supported in this browser.',
+                    'This browser cannot show web notifications. Try Chrome, Edge, or Firefox.'
+                );
+            }
+        }
+
+        function checkPermissionStatus() {
+            if (!('Notification' in window)) return;
+
+            const permission = Notification.permission;
+            
+            if (permission === 'granted') {
+                addResult(
+                    'Permission Status',
+                    'success',
+                    'Notification permission is GRANTED ✅',
+                    `Notification.permission = "${permission}"`
+                );
+            } else if (permission === 'denied') {
+                addResult(
+                    'Permission Status',
+                    'error',
+                    'Notification permission is DENIED ❌',
+                    `You need to manually enable notifications in browser settings:\n` +
+                    `Chrome: chrome://settings/content/notifications\n` +
+                    `Brave: brave://settings/content/notifications\n` +
+                    `Edge: edge://settings/content/notifications`
+                );
+            } else {
+                addResult(
+                    'Permission Status',
+                    'warning',
+                    'Notification permission is DEFAULT (not asked yet)',
+                    'Click "Request Permission" button to ask for permission.'
+                );
+            }
+        }
+
+        async function checkServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                addResult(
+                    'Service Worker',
+                    'error',
+                    'Service Worker API is not supported in this browser.',
+                    'Background notifications will not work.'
+                );
+                return;
+            }
+
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                
+                if (registrations.length === 0) {
+                    addResult(
+                        'Service Worker',
+                        'warning',
+                        'No service worker is registered.',
+                        'Background notifications may not work. Refresh the page to register service worker.'
+                    );
+                } else {
+                    const activeWorkers = registrations.filter(reg => reg.active);
+                    
+                    if (activeWorkers.length > 0) {
+                        const states = activeWorkers.map(reg => reg.active.state).join(', ');
+                        addResult(
+                            'Service Worker',
+                            'success',
+                            `${activeWorkers.length} service worker(s) registered and active.`,
+                            `States: ${states}\nScope: ${activeWorkers[0].scope}`
+                        );
+                    } else {
+                        addResult(
+                            'Service Worker',
+                            'warning',
+                            'Service worker registered but not active.',
+                            'Try refreshing the page.'
+                        );
+                    }
+                }
+            } catch (error) {
+                addResult(
+                    'Service Worker',
+                    'error',
+                    'Error checking service worker status.',
+                    `Error: ${error.message}`
+                );
+            }
+        }
+
+        function checkFirebaseConfig() {
+            // Check if Firebase is loaded
+            if (typeof firebase !== 'undefined') {
+                addResult(
+                    'Firebase SDK',
+                    'success',
+                    'Firebase SDK is loaded.',
+                    'Firebase libraries are available.'
+                );
+
+                // Check if Firebase is initialized
+                try {
+                    const apps = firebase.apps;
+                    if (apps && apps.length > 0) {
+                        addResult(
+                            'Firebase Initialization',
+                            'success',
+                            'Firebase is initialized.',
+                            `Project ID: ${apps[0].options.projectId || 'Unknown'}`
+                        );
+                    } else {
+                        addResult(
+                            'Firebase Initialization',
+                            'warning',
+                            'Firebase SDK loaded but not initialized.',
+                            'Firebase.initializeApp() may not have been called.'
+                        );
+                    }
+                } catch (error) {
+                    addResult(
+                        'Firebase Initialization',
+                        'error',
+                        'Error checking Firebase initialization.',
+                        `Error: ${error.message}`
+                    );
+                }
+            } else {
+                addResult(
+                    'Firebase SDK',
+                    'warning',
+                    'Firebase SDK not detected on this page.',
+                    'This is a standalone diagnostic tool. Firebase is loaded in your main app.'
+                );
+            }
+        }
+
+        async function checkNetwork() {
+            if (!navigator.onLine) {
+                addResult(
+                    'Network Status',
+                    'error',
+                    'No internet connection detected.',
+                    'Notifications require an active internet connection.'
+                );
+                return;
+            }
+
+            addResult(
+                'Network Status',
+                'success',
+                'Internet connection is active.',
+                'navigator.onLine = true'
+            );
+
+            // Try to reach Firebase
+            try {
+                const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                addResult(
+                    'Firebase Connectivity',
+                    'success',
+                    'Can reach Firebase Cloud Messaging servers.',
+                    'FCM endpoint is accessible.'
+                );
+            } catch (error) {
+                addResult(
+                    'Firebase Connectivity',
+                    'warning',
+                    'Could not verify Firebase connectivity.',
+                    'This may be due to CORS restrictions (normal for this test).'
+                );
+            }
+        }
+
+        function provideRecommendations() {
+            const permission = Notification.permission;
+            const hasServiceWorker = 'serviceWorker' in navigator;
+
+            let recommendations = [];
+
+            if (permission !== 'granted') {
+                recommendations.push('🔐 Grant notification permission by clicking "Request Permission" button');
+            }
+
+            if (!hasServiceWorker) {
+                recommendations.push('⚠️ Your browser does not support service workers - background notifications will not work');
+            }
+
+            const userAgent = navigator.userAgent;
+            if (userAgent.includes('Brave')) {
+                recommendations.push('🦁 Disable Brave Shields for this site (click lion icon)');
+            }
+
+            if (recommendations.length > 0) {
+                addResult(
+                    'Recommendations',
+                    'info',
+                    'Follow these steps to fix notification issues:',
+                    recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n')
+                );
+            } else {
+                addResult(
+                    'Status',
+                    'success',
+                    'Everything looks good! Notifications should work.',
+                    'Try sending a test notification from Firebase Console.'
+                );
+            }
+        }
+
+        async function requestPermission() {
+            if (!('Notification' in window)) {
+                alert('❌ Notification API not supported in this browser');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                alert('✅ Permission already granted!');
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                alert('❌ Permission is denied. You need to manually enable it in browser settings:\n\n' +
+                      'Chrome: chrome://settings/content/notifications\n' +
+                      'Brave: brave://settings/content/notifications\n' +
+                      'Edge: edge://settings/content/notifications');
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    alert('✅ Permission granted successfully!');
+                    runDiagnostics();
+                } else {
+                    alert('❌ Permission denied by user');
+                }
+            } catch (error) {
+                alert('❌ Error requesting permission: ' + error.message);
+            }
+        }
+
+        function testNotification() {
+            if (!('Notification' in window)) {
+                alert('❌ Notification API not supported');
+                return;
+            }
+
+            if (Notification.permission !== 'granted') {
+                alert('❌ Permission not granted. Click "Request Permission" first.');
+                return;
+            }
+
+            try {
+                const notification = new Notification('🎉 Test Notification', {
+                    body: 'If you see this, notifications are working!',
+                    icon: '/icons/Icon-192.png',
+                    badge: '/icons/Icon-192.png',
+                    tag: 'test-notification',
+                    requireInteraction: false
+                });
+
+                notification.onclick = () => {
+                    alert('✅ Notification clicked!');
+                    notification.close();
+                };
+
+                setTimeout(() => {
+                    notification.close();
+                }, 5000);
+
+                alert('✅ Test notification sent! Check top-right corner of your screen.');
+            } catch (error) {
+                alert('❌ Error showing notification: ' + error.message);
+            }
+        }
+
+        // Auto-run diagnostics on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                runDiagnostics();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

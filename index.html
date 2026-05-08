@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base href="/" />
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="description" content="Taskyz Web App">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Taskyz">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="manifest" href="manifest.json">
+  <title>Taskyz</title>
+  
+  <!-- Firestore Configuration for Safari CORS fix -->
+  <script src="firestore-config.js"></script>
+  
+  <!-- Notification Helper for cross-browser compatibility -->
+  <script src="notification-helper.js"></script>
+  
+  <style>
+    /* Loading indicator for Brave browser reload issue */
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0175C2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    #loading-content {
+      text-align: center;
+      color: white;
+    }
+    
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Loading indicator -->
+<div id="loading">
+  <div id="loading-content">
+    <div class="spinner"></div>
+    <p>Loading Taskyz...</p>
+  </div>
+</div>
+
+<!-- 🔔 SW Registration — Cross-browser compatible -->
+<script>
+  (function() {
+    'use strict';
+    
+    // Detect browser
+    var userAgent = navigator.userAgent.toLowerCase();
+    var browserName = 'unknown';
+    var isBrave = false;
+    
+    // Check for Brave first (before Chrome check)
+    if (navigator.brave && navigator.brave.isBrave) {
+      browserName = 'brave';
+      isBrave = true;
+    } else if (userAgent.indexOf('brave') > -1) {
+      browserName = 'brave';
+      isBrave = true;
+    } else if (userAgent.indexOf('firefox') > -1) {
+      browserName = 'firefox';
+    } else if (userAgent.indexOf('safari') > -1 && userAgent.indexOf('chrome') === -1) {
+      browserName = 'safari';
+    } else if (userAgent.indexOf('edg') > -1) {
+      browserName = 'edge';
+    } else if (userAgent.indexOf('chrome') > -1) {
+      browserName = 'chrome';
+    }
+    
+    // Enhanced logging for Brave
+    function log(message, data) {
+      var timestamp = new Date().toLocaleTimeString();
+      var fullMessage = '[' + timestamp + '] ' + message;
+      
+      // Standard console.log
+      console.log(fullMessage, data || '');
+      
+      // For Brave, use multiple console methods to ensure visibility
+      if (isBrave) {
+        console.info('🔵 BRAVE: ' + fullMessage, data || '');
+        console.warn('🟡 BRAVE LOG: ' + fullMessage, data || '');
+      }
+    }
+    
+    function error(message, data) {
+      var timestamp = new Date().toLocaleTimeString();
+      var fullMessage = '[' + timestamp + '] ' + message;
+      
+      console.error(fullMessage, data || '');
+      
+      // For Brave, also use warn
+      if (isBrave) {
+        console.warn('🔴 BRAVE ERROR: ' + fullMessage, data || '');
+      }
+    }
+    
+    log('🌐 Browser detected: ' + browserName + (isBrave ? ' (Brave Browser)' : ''));
+    log('📱 User Agent: ' + userAgent);
+    
+    if (isBrave) {
+      log('⚠️ BRAVE DETECTED: Enhanced logging enabled');
+      log('💡 TIP: Check both Console and Application tabs for logs');
+    }
+    
+    // Check if notifications are supported
+    if (!('Notification' in window)) {
+      error('❌ This browser does not support notifications');
+      return;
+    }
+    
+    if (!('serviceWorker' in navigator)) {
+      error('❌ This browser does not support service workers');
+      return;
+    }
+    
+    if (!('PushManager' in window)) {
+      error('❌ This browser does not support push notifications');
+      return;
+    }
+    
+    log('✅ Browser supports notifications, service workers, and push');
+    log('📋 Current notification permission: ' + Notification.permission);
+    
+    // Register service worker with retry logic
+    function registerServiceWorker(retryCount) {
+      retryCount = retryCount || 0;
+      
+      log('🔄 Registering service worker (attempt ' + (retryCount + 1) + ')...');
+      
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js', {
+          scope: '/',
+          updateViaCache: 'none' // Prevent caching issues
+        })
+        .then(function(registration) {
+          log('✅ Service Worker registered successfully');
+          log('   Scope: ' + registration.scope);
+          log('   Active: ' + (registration.active ? 'Yes' : 'No'));
+          log('   Installing: ' + (registration.installing ? 'Yes' : 'No'));
+          log('   Waiting: ' + (registration.waiting ? 'Yes' : 'No'));
+          
+          if (isBrave) {
+            log('🔵 BRAVE: Service Worker registered at ' + registration.scope);
+          }
+          
+          // Wait for service worker to be ready
+          return navigator.serviceWorker.ready;
+        })
+        .then(function(registration) {
+          log('✅ Service Worker is ready and active');
+          log('   Scope: ' + registration.scope);
+          
+          if (isBrave) {
+            log('🔵 BRAVE: Service Worker is now active and ready');
+          }
+          
+          // Store registration globally for Flutter to access
+          window.swRegistration = registration;
+          
+          // Check push subscription status
+          return registration.pushManager.getSubscription();
+        })
+        .then(function(subscription) {
+          if (subscription) {
+            log('✅ Push subscription exists: ' + subscription.endpoint.substring(0, 50) + '...');
+            if (isBrave) {
+              log('🔵 BRAVE: Push subscription active');
+            }
+          } else {
+            log('ℹ️ No push subscription yet (will be created when user logs in)');
+            if (isBrave) {
+              log('🔵 BRAVE: No push subscription yet');
+            }
+          }
+        })
+        .catch(function(error) {
+          error('❌ Service Worker registration failed: ' + error.message);
+          error('   Error name: ' + error.name);
+          
+          if (isBrave) {
+            error('🔴 BRAVE: Service Worker registration failed');
+            error('   This might be due to Brave Shields. Try:');
+            error('   1. Click Brave icon → Advanced → Allow service workers');
+            error('   2. Reload the page');
+          }
+          
+          // Retry up to 3 times with exponential backoff
+          if (retryCount < 3) {
+            var delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+            log('🔄 Retrying in ' + delay + 'ms... (attempt ' + (retryCount + 1) + '/3)');
+            setTimeout(function() {
+              registerServiceWorker(retryCount + 1);
+            }, delay);
+          }
+        });
+    }
+    
+    // Wait for page load before registering
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        registerServiceWorker(0);
+      });
+    } else {
+      registerServiceWorker(0);
+    }
+    
+    // Enhanced message listener for Brave
+    navigator.serviceWorker.addEventListener('message', function(event) {
+      var payload = event && event.data ? event.data : null;
+      if (!payload || payload.source !== 'taskyz-sw') return;
+      
+      var prefix = '[SW→PAGE]';
+      var message = prefix + ' ' + payload.message;
+      var data = payload.data || '';
+      
+      if (payload.level === 'error') {
+        console.error(message, data);
+        if (isBrave) {
+          console.warn('🔴 BRAVE SW ERROR: ' + message, data);
+        }
+      } else {
+        console.log(message, data);
+        if (isBrave) {
+          console.info('🔵 BRAVE SW LOG: ' + message, data);
+          console.warn('🟡 BRAVE SW: ' + message, data);
+        }
+      }
+    });
+    
+    // Handle service worker updates
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      log('🔄 Service Worker controller changed - new version activated');
+      if (isBrave) {
+        log('🔵 BRAVE: Service Worker updated');
+      }
+    });
+    
+    // Brave-specific: Log when service worker becomes active
+    if (isBrave) {
+      navigator.serviceWorker.ready.then(function(registration) {
+        log('🔵 BRAVE: Service Worker ready event fired');
+        log('🔵 BRAVE: Registration scope: ' + registration.scope);
+        
+        // Check for pending logs from service worker
+        if (registration.active) {
+          log('🔵 BRAVE: Service Worker is active');
+        }
+      });
+    }
+    
+  })();
+</script>
+
+<!-- Flutter bootstrap -->
+<script src="flutter_bootstrap.js" async></script>
+
+<!-- Hide loading indicator when Flutter is ready -->
+<script>
+  window.addEventListener('flutter-first-frame', function() {
+    var loading = document.getElementById('loading');
+    if (loading) {
+      loading.style.display = 'none';
+    }
+  });
+  
+  // Fallback: Hide loading after 5 seconds if Flutter doesn't load
+  setTimeout(function() {
+    var loading = document.getElementById('loading');
+    if (loading) {
+      loading.style.opacity = '0';
+      loading.style.transition = 'opacity 0.5s';
+      setTimeout(function() {
+        loading.style.display = 'none';
+      }, 500);
+    }
+  }, 5000);
+</script>
+
+</body>
+</html>

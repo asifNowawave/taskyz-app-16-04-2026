@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari Console Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0175C2;
+        }
+        button {
+            background: #0175C2;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #015a99;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍎 Safari Console Test</h1>
+        
+        <div id="browserInfo" class="status info">Detecting browser...</div>
+        
+        <h2>Test Console Logging</h2>
+        <p>Click the buttons below to test different console methods. Then check Safari's Web Inspector (⌘⌥C).</p>
+        
+        <button onclick="testConsoleLog()">Test console.log()</button>
+        <button onclick="testConsoleInfo()">Test console.info()</button>
+        <button onclick="testConsoleWarn()">Test console.warn()</button>
+        <button onclick="testConsoleError()">Test console.error()</button>
+        <button onclick="testAllMethods()">Test All Methods</button>
+        
+        <h2>Test Notifications</h2>
+        <button onclick="testNotificationSupport()">Check Support</button>
+        <button onclick="requestPermission()">Request Permission</button>
+        <button onclick="showTestNotification()">Show Notification</button>
+        
+        <h2>On-Page Log</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        // Detect browser
+        function detectBrowser() {
+            const ua = navigator.userAgent.toLowerCase();
+            let browser = 'Unknown';
+            let icon = '🌐';
+            
+            if (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) {
+                browser = 'Safari';
+                icon = '🍎';
+            } else if (ua.indexOf('chrome') !== -1) {
+                browser = 'Chrome';
+                icon = '🔵';
+            } else if (ua.indexOf('firefox') !== -1) {
+                browser = 'Firefox';
+                icon = '🦊';
+            } else if (ua.indexOf('edg') !== -1) {
+                browser = 'Edge';
+                icon = '🔷';
+            }
+            
+            document.getElementById('browserInfo').innerHTML = 
+                `${icon} <strong>Browser:</strong> ${browser}<br><strong>User Agent:</strong> ${ua}`;
+            
+            return browser;
+        }
+
+        // Log to page
+        function logToPage(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            entry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Test console.log
+        function testConsoleLog() {
+            const message = '🍎 Testing console.log() in Safari';
+            console.log(message);
+            logToPage('✅ console.log() called - check Web Inspector', 'success');
+        }
+
+        // Test console.info
+        function testConsoleInfo() {
+            const message = '🍎 Testing console.info() in Safari';
+            console.info(message);
+            logToPage('✅ console.info() called - check Web Inspector', 'success');
+        }
+
+        // Test console.warn
+        function testConsoleWarn() {
+            const message = '🍎 Testing console.warn() in Safari';
+            console.warn(message);
+            logToPage('✅ console.warn() called - check Web Inspector', 'success');
+        }
+
+        // Test console.error
+        function testConsoleError() {
+            const message = '🍎 Testing console.error() in Safari';
+            console.error(message);
+            logToPage('✅ console.error() called - check Web Inspector', 'success');
+        }
+
+        // Test all methods
+        function testAllMethods() {
+            console.log('🍎 SAFARI TEST: console.log()');
+            console.info('🍎 SAFARI TEST: console.info()');
+            console.warn('🍎 SAFARI TEST: console.warn()');
+            console.error('🍎 SAFARI TEST: console.error()');
+            console.debug('🍎 SAFARI TEST: console.debug()');
+            
+            logToPage('✅ All console methods called - check Web Inspector', 'success');
+            logToPage('💡 In Safari: View → Show Web Inspector (⌘⌥C)', 'info');
+            logToPage('💡 Check the "Console" tab', 'info');
+        }
+
+        // Test notification support
+        function testNotificationSupport() {
+            const supported = 'Notification' in window;
+            const permission = supported ? Notification.permission : 'not-supported';
+            
+            console.log('🔔 Notification Support:', supported);
+            console.log('🔔 Permission Status:', permission);
+            
+            logToPage(`Notifications Supported: ${supported}`, supported ? 'success' : 'error');
+            logToPage(`Permission: ${permission}`, permission === 'granted' ? 'success' : 'info');
+        }
+
+        // Request permission
+        function requestPermission() {
+            if (!('Notification' in window)) {
+                logToPage('❌ Notifications not supported', 'error');
+                return;
+            }
+
+            console.log('🔔 Requesting notification permission...');
+            logToPage('Requesting permission...', 'info');
+
+            Notification.requestPermission().then(permission => {
+                console.log('🔔 Permission result:', permission);
+                logToPage(`Permission: ${permission}`, permission === 'granted' ? 'success' : 'error');
+                
+                if (permission === 'granted') {
+                    logToPage('✅ Permission granted! Now you can show notifications.', 'success');
+                } else {
+                    logToPage('❌ Permission denied. Check Safari settings.', 'error');
+                }
+            });
+        }
+
+        // Show test notification
+        function showTestNotification() {
+            if (Notification.permission !== 'granted') {
+                logToPage('❌ Permission not granted. Click "Request Permission" first.', 'error');
+                return;
+            }
+
+            console.log('🔔 Creating test notification...');
+            logToPage('Creating notification...', 'info');
+
+            try {
+                // Safari works best with minimal options
+                const notification = new Notification('🍎 Safari Test', {
+                    body: 'This is a test notification in Safari'
+                });
+
+                notification.onshow = function() {
+                    console.log('👁️ Notification shown!');
+                    logToPage('✅ Notification shown on screen!', 'success');
+                };
+
+                notification.onerror = function(error) {
+                    console.error('❌ Notification error:', error);
+                    logToPage('❌ Notification error - check console', 'error');
+                };
+
+                notification.onclick = function() {
+                    console.log('👆 Notification clicked');
+                    logToPage('Notification clicked', 'info');
+                    notification.close();
+                };
+
+                logToPage('✅ Notification created - should appear now', 'success');
+            } catch (error) {
+                console.error('❌ Error creating notification:', error);
+                logToPage(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        detectBrowser();
+        logToPage('🎉 Test page loaded', 'success');
+        logToPage('💡 Open Web Inspector: View → Show Web Inspector (⌘⌥C)', 'info');
+        logToPage('💡 Or right-click → Inspect Element', 'info');
+    </script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Web Notification Test - Taskyz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .status {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 5px solid;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+        .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        #output {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .clear-btn {
+            background: #6c757d;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Web Notification Test</h1>
+            <p>Taskyz - Diagnostic Tool for Web Notifications</p>
+        </div>
+
+        <div class="content">
+            <div class="button-group">
+                <button onclick="checkStatus()">
+                    <span class="icon">🔍</span> 1. Check Status
+                </button>
+                <button onclick="requestPermission()">
+                    <span class="icon">🔐</span> 2. Request Permission
+                </button>
+                <button onclick="testNotification()">
+                    <span class="icon">🧪</span> 3. Test Notification
+                </button>
+                <button onclick="testFirebase()">
+                    <span class="icon">🔥</span> 4. Test Firebase
+                </button>
+            </div>
+
+            <div id="output"></div>
+
+            <button class="clear-btn" onclick="clearOutput()">
+                <span class="icon">🗑️</span> Clear Results
+            </button>
+        </div>
+
+        <div class="footer">
+            Made for Taskyz Web App | Test your notification setup
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging.js';
+
+        window.firebaseApp = null;
+        window.messaging = null;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            
+            const icon = type === 'success' ? '✅' : 
+                        type === 'error' ? '❌' : 
+                        type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            div.innerHTML = `<span class="icon">${icon}</span><pre>${message}</pre>`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+
+        window.clearOutput = function() {
+            document.getElementById('output').innerHTML = '';
+        };
+
+        window.checkStatus = function() {
+            clearOutput();
+            
+            log('═══════════════════════════════════════════════════════', 'info');
+            log('🔍 CHECKING SYSTEM STATUS', 'info');
+            log('═══════════════════════════════════════════════════════', 'info');
+            
+            // Check Browser
+            const userAgent = navigator.userAgent;
+            let browser = 'Unknown';
+            if (userAgent.includes('Brave')) browser = 'Brave';
+            else if (userAgent.includes('Edg')) browser = 'Edge';
+            else if (userAgent.includes('Chrome')) browser = 'Chrome';
+            else if (userAgent.includes('Safari')) browser = 'Safari';
+            else if (userAgent.includes('Firefox')) browser = 'Firefox';
+            
+            log(`🌐 Browser: ${browser}`, 'info');
+            
+            // Check Notification API
+            if ('Notification' in window) {
+                log('✅ Notification API: Supported', 'success');
+                log(`📋 Current Permission: ${Notification.permission}`, 'info');
+                
+                if (Notification.permission === 'granted') {
+                    log('✅ Permission Status: GRANTED', 'success');
+                } else if (Notification.permission === 'denied') {
+                    log('❌ Permission Status: DENIED', 'error');
+                    log('Fix: Enable notifications in browser settings', 'warning');
+                    log(`Chrome: chrome://settings/content/notifications`, 'info');
+                    log(`Brave: brave://settings/content/notifications`, 'info');
+                } else {
+                    log('⚠️ Permission Status: NOT ASKED YET', 'warning');
+                    log('Click "Request Permission" button', 'info');
+                }
+            } else {
+                log('❌ Notification API: NOT SUPPORTED', 'error');
+                log('Try using Chrome, Edge, or Firefox', 'warning');
+            }
+
+            // Check Service Worker
+            if ('serviceWorker' in navigator) {
+                log('✅ Service Worker API: Supported', 'success');
+                
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    if (regs.length > 0) {
+                        log(`✅ Service Workers: ${regs.length} registered`, 'success');
+                        regs.forEach((reg, i) => {
+                            const state = reg.active?.state || 'inactive';
+                            const scope = reg.scope;
+                            log(`   SW ${i+1}: ${state} | Scope: ${scope}`, 'info');
+                        });
+                    } else {
+                        log('⚠️ Service Workers: None registered', 'warning');
+                        log('Refresh your main app to register service worker', 'info');
+                    }
+                });
+            } else {
+                log('❌ Service Worker API: NOT SUPPORTED', 'error');
+            }
+
+            // Check Network
+            if (navigator.onLine) {
+                log('✅ Network: Connected', 'success');
+            } else {
+                log('❌ Network: Offline', 'error');
+            }
+
+            log('═══════════════════════════════════════════════════════', 'info');
+        };
+
+        window.requestPermission = async function() {
+            clearOutput();
+            
+            log('═══════════════════════════════════════════════════════', 'info');
+            log('🔐 REQUESTING NOTIFICATION PERMISSION', 'info');
+            log('═══════════════════════════════════════════════════════', 'info');
+            
+            if (!('Notification' in window)) {
+                log('❌ Notification API not supported in this browser', 'error');
+                log('Try Chrome, Edge, or Firefox', 'warning');
+                return;
+            }
+
+            const currentPermission = Notification.permission;
+            log(`📋 Current permission: ${currentPermission}`, 'info');
+
+            if (currentPermission === 'granted') {
+                log('✅ Permission already granted!', 'success');
+                log('You can now receive notifications', 'info');
+                return;
+            }
+
+            if (currentPermission === 'denied') {
+                log('❌ Permission is DENIED', 'error');
+                log('You must manually enable notifications:', 'warning');
+                log('1. Click lock icon (🔒) in address bar', 'info');
+                log('2. Go to Site settings', 'info');
+                log('3. Change Notifications to "Allow"', 'info');
+                log('4. Refresh this page', 'info');
+                log('', 'info');
+                log('Or go directly to:', 'info');
+                log('Chrome: chrome://settings/content/notifications', 'info');
+                log('Brave: brave://settings/content/notifications', 'info');
+                return;
+            }
+
+            try {
+                log('🔔 Requesting permission from browser...', 'info');
+                log('Please click "Allow" when browser asks', 'warning');
+                
+                const permission = await Notification.requestPermission();
+                
+                log(`📋 Permission result: ${permission}`, 'info');
+                
+                if (permission === 'granted') {
+                    log('✅ Permission GRANTED successfully!', 'success');
+                    log('You can now receive notifications', 'info');
+                    log('Try "Test Notification" button', 'info');
+                } else {
+                    log('❌ Permission DENIED by user', 'error');
+                    log('Notifications will not work', 'warning');
+                }
+            } catch (error) {
+                log(`❌ Error requesting permission: ${error.message}`, 'error');
+            }
+            
+            log('═══════════════════════════════════════════════════════', 'info');
+        };
+
+        window.testNotification = function() {
+            clearOutput();
+            
+            log('═══════════════════════════════════════════════════════', 'info');
+            log('🧪 TESTING BROWSER NOTIFICATION', 'info');
+            log('═══════════════════════════════════════════════════════', 'info');
+            
+            if (!('Notification' in window)) {
+                log('❌ Notification API not supported', 'error');
+                return;
+            }
+
+            if (Notification.permission !== 'granted') {
+                log('❌ Permission not granted', 'error');
+                log(`Current permission: ${Notification.permission}`, 'info');
+                log('Click "Request Permission" button first', 'warning');
+                return;
+            }
+
+            try {
+                log('🔔 Creating test notification...', 'info');
+                
+                const notification = new Notification('🎉 Test Notification', {
+                    body: 'If you see this, browser notifications are working!',
+                    icon: '/icons/Icon-192.png',
+                    badge: '/icons/Icon-192.png',
+                    tag: 'test-notification-' + Date.now(),
+                    requireInteraction: false
+                });
+
+                log('✅ Notification created successfully!', 'success');
+                log('Check the top-right corner of your screen', 'info');
+
+                notification.onclick = () => {
+                    log('✅ Notification was clicked!', 'success');
+                    notification.close();
+                };
+
+                notification.onshow = () => {
+                    log('✅ Notification is now visible', 'success');
+                };
+
+                notification.onerror = (error) => {
+                    log(`❌ Notification error: ${error}`, 'error');
+                };
+
+                // Auto close after 5 seconds
+                setTimeout(() => {
+                    notification.close();
+                    log('🔕 Notification auto-closed after 5 seconds', 'info');
+                }, 5000);
+
+            } catch (error) {
+                log(`❌ Error creating notification: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+            }
+            
+            log('═══════════════════════════════════════════════════════', 'info');
+        };
+
+        window.testFirebase = async function() {
+            clearOutput();
+            
+            log('═══════════════════════════════════════════════════════', 'info');
+            log('🔥 TESTING FIREBASE CLOUD MESSAGING', 'info');
+            log('═══════════════════════════════════════════════════════', 'info');
+
+            try {
+                // Check permission first
+                if (Notification.permission !== 'granted') {
+                    log('❌ Notification permission not granted', 'error');
+                    log('Click "Request Permission" first', 'warning');
+                    return;
+                }
+
+                // Initialize Firebase
+                if (!window.firebaseApp) {
+                    log('🔥 Initializing Firebase...', 'info');
+                    
+                    window.firebaseApp = initializeApp({
+                        apiKey: "AIzaSyDbN7cvYX6FS3CN7h1zxpT_uVdoNMH2P7k",
+                        authDomain: "tasky-11.firebaseapp.com",
+                        projectId: "tasky-11",
+                        storageBucket: "tasky-11.firebasestorage.app",
+                        messagingSenderId: "301264486631",
+                        appId: "1:301264486631:web:06e39f7e48d1d36c15e242"
+                    });
+                    
+                    log('✅ Firebase initialized successfully', 'success');
+                }
+
+                // Get messaging
+                if (!window.messaging) {
+                    log('📨 Getting Firebase Messaging instance...', 'info');
+                    window.messaging = getMessaging(window.firebaseApp);
+                    log('✅ Firebase Messaging ready', 'success');
+                }
+
+                // Get token
+                log('🔑 Requesting FCM token...', 'info');
+                log('This may take a few seconds...', 'info');
+                
+                const token = await getToken(window.messaging, {
+                    vapidKey: 'BKWvss8fWSth8nk1UDY0BxAfR5U3UFGcn9PfIdSW5GlgiJ5OUxRDfKRY_056ScjMs6mHQporUoN1x_aaTuHZJhc'
+                });
+
+                if (token) {
+                    log('✅ FCM Token obtained successfully!', 'success');
+                    log('═══════════════════════════════════════════════════════', 'info');
+                    log('🔑 YOUR FCM TOKEN:', 'info');
+                    log(token, 'success');
+                    log('═══════════════════════════════════════════════════════', 'info');
+                    log('', 'info');
+                    log('📋 How to use this token:', 'info');
+                    log('1. Copy the token above', 'info');
+                    log('2. Go to: https://console.firebase.google.com', 'info');
+                    log('3. Select project: tasky-11', 'info');
+                    log('4. Cloud Messaging → Send your first message', 'info');
+                    log('5. Click "Send test message"', 'info');
+                    log('6. Paste your FCM token', 'info');
+                    log('7. Click "Test"', 'info');
+                    log('', 'info');
+                    log('✅ You should receive a notification!', 'success');
+
+                    // Set up foreground message listener
+                    onMessage(window.messaging, (payload) => {
+                        log('═══════════════════════════════════════════════════════', 'info');
+                        log('📨 FOREGROUND MESSAGE RECEIVED!', 'success');
+                        log(`Title: ${payload.notification?.title}`, 'info');
+                        log(`Body: ${payload.notification?.body}`, 'info');
+                        log('═══════════════════════════════════════════════════════', 'info');
+
+                        // Show notification
+                        if (Notification.permission === 'granted') {
+                            new Notification(
+                                payload.notification?.title || 'New Message',
+                                {
+                                    body: payload.notification?.body || '',
+                                    icon: payload.notification?.icon || '/icons/Icon-192.png'
+                                }
+                            );
+                        }
+                    });
+
+                    log('👂 Foreground message listener active', 'success');
+                } else {
+                    log('❌ No FCM token received', 'error');
+                    log('Possible reasons:', 'warning');
+                    log('1. Service worker not registered', 'info');
+                    log('2. Browser doesn\'t support FCM (Safari/Brave)', 'info');
+                    log('3. Network issue', 'info');
+                }
+
+            } catch (error) {
+                log(`❌ Firebase Error: ${error.message}`, 'error');
+                log(`Error code: ${error.code}`, 'error');
+                log(`Stack trace: ${error.stack}`, 'error');
+                log('', 'info');
+                log('Common fixes:', 'warning');
+                log('1. Check internet connection', 'info');
+                log('2. Verify Firebase config is correct', 'info');
+                log('3. Ensure service worker is registered', 'info');
+                log('4. Try refreshing the page', 'info');
+            }
+            
+            log('═══════════════════════════════════════════════════════', 'info');
+        };
+
+        // Auto-check status on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkStatus();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

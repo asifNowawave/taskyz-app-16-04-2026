@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quick Dart Notification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>🔔 Quick Notification Test</h1>
+        <p>यह test करेगा कि notifications क्यों नहीं आ रहे</p>
+        
+        <button onclick="test1()">Test 1: Manual JS (जो काम कर रहा है)</button>
+        <button onclick="test2()">Test 2: Dart जैसा Code</button>
+        <button onclick="test3()">Test 3: Safari Style</button>
+        <button onclick="checkPermission()">Check Permission</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function log(msg) {
+            const result = document.getElementById('result');
+            result.innerHTML += `<div class="result">${msg}</div>`;
+            console.log(msg);
+        }
+
+        function checkPermission() {
+            document.getElementById('result').innerHTML = '';
+            log(`🔍 Permission Status: ${Notification.permission}`);
+            log(`🔍 Notification API: ${('Notification' in window) ? 'Supported' : 'Not Supported'}`);
+            log(`🔍 Browser: ${navigator.userAgent}`);
+        }
+
+        // Test 1: आपका working code
+        function test1() {
+            document.getElementById('result').innerHTML = '';
+            log('Test 1: Manual JS notification...');
+            
+            if (Notification.permission === 'granted') {
+                try {
+                    new Notification('Manual Safari Test', { 
+                        body: 'Direct test' 
+                    });
+                    log('✅ Manual notification created');
+                } catch (e) {
+                    log('❌ Error: ' + e.message);
+                }
+            } else {
+                log('❌ Permission: ' + Notification.permission);
+            }
+        }
+
+        // Test 2: Dart code जैसा (with icon and tag)
+        function test2() {
+            document.getElementById('result').innerHTML = '';
+            log('Test 2: Dart-style notification (with icon + tag)...');
+            
+            if (Notification.permission === 'granted') {
+                try {
+                    const notification = new Notification('Taskyz Test', {
+                        body: 'Notifications are working! 🎉',
+                        icon: '/icons/Icon-192.png',
+                        badge: '/icons/Icon-192.png',
+                        tag: 'taskyz-' + Date.now()
+                    });
+                    
+                    notification.onclick = () => {
+                        log('✅ Notification clicked');
+                        notification.close();
+                    };
+                    
+                    notification.onshow = () => {
+                        log('✅ Notification shown');
+                    };
+                    
+                    notification.onerror = (e) => {
+                        log('❌ Notification error: ' + e);
+                    };
+                    
+                    log('✅ Dart-style notification created');
+                } catch (e) {
+                    log('❌ Error: ' + e.message);
+                }
+            } else {
+                log('❌ Permission: ' + Notification.permission);
+            }
+        }
+
+        // Test 3: Safari minimal style
+        function test3() {
+            document.getElementById('result').innerHTML = '';
+            log('Test 3: Safari minimal notification (title + body only)...');
+            
+            if (Notification.permission === 'granted') {
+                try {
+                    const notification = new Notification('Safari Test', {
+                        body: 'Minimal notification for Safari'
+                    });
+                    
+                    notification.onshow = () => {
+                        log('✅ Safari notification shown');
+                    };
+                    
+                    notification.onerror = (e) => {
+                        log('❌ Safari notification error: ' + e);
+                    };
+                    
+                    log('✅ Safari-style notification created');
+                } catch (e) {
+                    log('❌ Error: ' + e.message);
+                }
+            } else {
+                log('❌ Permission: ' + Notification.permission);
+            }
+        }
+
+        // Auto check on load
+        window.addEventListener('load', () => {
+            checkPermission();
+        });
+    </script>
+</body>
+</html>

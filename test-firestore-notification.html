@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Firestore Notification - Safari</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .input-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 5px solid;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+        .icon {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+        #output {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .note {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+        .note strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Test Firestore Notification</h1>
+            <p>Add a notification to Firestore to test Safari notifications</p>
+        </div>
+
+        <div class="content">
+            <div class="input-group">
+                <label for="userId">User ID</label>
+                <input 
+                    type="text" 
+                    id="userId" 
+                    value="513d8094-6520-44f7-a899-a4b0897b93dc"
+                    placeholder="Enter user ID"
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="title">Notification Title</label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    value="Test Notification from Firestore"
+                    placeholder="Enter notification title"
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="body">Notification Body</label>
+                <textarea 
+                    id="body" 
+                    placeholder="Enter notification message"
+                >This is a test notification sent directly to Firestore! If you see this in Safari, notifications are working! 🎉</textarea>
+            </div>
+
+            <button onclick="sendNotification()">
+                <span class="icon">🚀</span> Send Test Notification to Firestore
+            </button>
+
+            <div id="output"></div>
+
+            <div class="note">
+                <strong>📝 Note:</strong> This will add a notification document directly to Firestore. 
+                Your app's Firestore listener should detect it and show a Safari notification automatically.
+                <br><br>
+                <strong>✅ Make sure:</strong> Your main app is open and the Firestore listener is active!
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbN7cvYX6FS3CN7h1zxpT_uVdoNMH2P7k",
+            authDomain: "tasky-11.firebaseapp.com",
+            projectId: "tasky-11",
+            storageBucket: "tasky-11.firebasestorage.app",
+            messagingSenderId: "301264486631",
+            appId: "1:301264486631:web:06e39f7e48d1d36c15e242"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            
+            const icon = type === 'success' ? '✅' : 
+                        type === 'error' ? '❌' : 
+                        type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            div.innerHTML = `<span class="icon">${icon}</span><pre>${message}</pre>`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+
+        window.sendNotification = async function() {
+            const userId = document.getElementById('userId').value.trim();
+            const title = document.getElementById('title').value.trim();
+            const body = document.getElementById('body').value.trim();
+
+            // Clear previous output
+            document.getElementById('output').innerHTML = '';
+
+            // Validation
+            if (!userId) {
+                log('❌ User ID is required!', 'error');
+                return;
+            }
+
+            if (!title) {
+                log('❌ Title is required!', 'error');
+                return;
+            }
+
+            if (!body) {
+                log('❌ Body is required!', 'error');
+                return;
+            }
+
+            try {
+                log('═══════════════════════════════════════════════════════', 'info');
+                log('🚀 SENDING NOTIFICATION TO FIRESTORE', 'info');
+                log('═══════════════════════════════════════════════════════', 'info');
+                
+                log(`📋 User ID: ${userId}`, 'info');
+                log(`📋 Title: ${title}`, 'info');
+                log(`📋 Body: ${body}`, 'info');
+
+                // Disable button
+                const button = document.querySelector('button');
+                button.disabled = true;
+                button.textContent = '⏳ Sending...';
+
+                // Add notification to Firestore
+                log('📤 Adding document to Firestore...', 'info');
+                
+                const notificationData = {
+                    userId: userId,
+                    title: title,
+                    body: body,
+                    seen: false,
+                    timestamp: serverTimestamp(),
+                    icon: '/icons/Icon-192.png',
+                    createdAt: new Date().toISOString()
+                };
+
+                const docRef = await addDoc(collection(db, 'notifications'), notificationData);
+
+                log('═══════════════════════════════════════════════════════', 'success');
+                log('✅ NOTIFICATION SENT SUCCESSFULLY!', 'success');
+                log('═══════════════════════════════════════════════════════', 'success');
+                log(`📄 Document ID: ${docRef.id}`, 'success');
+                log('', 'info');
+                log('🎯 What happens next:', 'info');
+                log('1. Your app\'s Firestore listener will detect this new document', 'info');
+                log('2. The listener will call showNotification()', 'info');
+                log('3. Safari should show the notification!', 'info');
+                log('', 'info');
+                log('👀 Check your main app window for the notification!', 'warning');
+                log('📱 Also check Safari\'s Notification Center (top-right corner)', 'warning');
+
+                // Re-enable button
+                button.disabled = false;
+                button.innerHTML = '<span class="icon">🚀</span> Send Another Test Notification';
+
+            } catch (error) {
+                log('═══════════════════════════════════════════════════════', 'error');
+                log('❌ ERROR SENDING NOTIFICATION', 'error');
+                log('═══════════════════════════════════════════════════════', 'error');
+                log(`Error: ${error.message}`, 'error');
+                log(`Code: ${error.code}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+                log('', 'info');
+                log('💡 Possible fixes:', 'warning');
+                log('1. Check Firebase configuration', 'info');
+                log('2. Verify Firestore rules allow writes', 'info');
+                log('3. Check internet connection', 'info');
+                log('4. Make sure you\'re authenticated (if required)', 'info');
+
+                // Re-enable button
+                const button = document.querySelector('button');
+                button.disabled = false;
+                button.innerHTML = '<span class="icon">🚀</span> Send Test Notification to Firestore';
+            }
+        };
+
+        // Auto-load message
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('✅ Firestore connection ready!', 'success');
+                log('📝 Fill in the details and click "Send Test Notification"', 'info');
+                log('', 'info');
+                log('🔍 Make sure your main app is open in another tab!', 'warning');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Safari Quick Test</title>
+    <style>
+        body { font-family: Arial; padding: 40px; background: #f5f5f5; }
+        .box { background: white; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto; }
+        button { background: #0175C2; color: white; border: none; padding: 15px 30px; 
+                 border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; }
+        button:hover { background: #015a99; }
+        .log { background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; 
+               font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🍎 Safari Quick Test</h1>
+        
+        <div id="status" class="status info">Testing...</div>
+        
+        <h2>Step 1: Test Console</h2>
+        <button onclick="testConsole()">Test Console Logging</button>
+        <p><small>Open Web Inspector (⌘⌥C) and check Console tab</small></p>
+        
+        <h2>Step 2: Check Support</h2>
+        <button onclick="checkSupport()">Check Notification Support</button>
+        
+        <h2>Step 3: Request Permission</h2>
+        <button onclick="requestPerm()">Request Permission</button>
+        
+        <h2>Step 4: Show Notification</h2>
+        <button onclick="showNotif()">Show Test Notification</button>
+        
+        <h2>On-Page Log:</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        function log(msg, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `[${time}] ${msg}`;
+            entry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Also log to console with multiple methods
+            console.log(msg);
+            console.info('🍎 SAFARI:', msg);
+            console.warn('🟡 SAFARI:', msg);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function testConsole() {
+            log('Testing console.log()...', 'info');
+            console.log('🍎 Safari console.log() test');
+            console.info('🍎 Safari console.info() test');
+            console.warn('🍎 Safari console.warn() test');
+            console.error('🍎 Safari console.error() test');
+            log('✅ Console methods called - check Web Inspector!', 'success');
+            log('💡 Press ⌘⌥C to open Web Inspector', 'info');
+        }
+        
+        function checkSupport() {
+            const supported = 'Notification' in window;
+            const permission = supported ? Notification.permission : 'not-supported';
+            
+            log(`Notification API: ${supported ? '✅ Supported' : '❌ Not Supported'}`, supported ? 'success' : 'error');
+            log(`Permission: ${permission}`, permission === 'granted' ? 'success' : 'info');
+            
+            document.getElementById('status').className = 'status ' + (supported ? 'success' : 'error');
+            document.getElementById('status').textContent = 
+                `Supported: ${supported}, Permission: ${permission}`;
+        }
+        
+        function requestPerm() {
+            if (!('Notification' in window)) {
+                log('❌ Notification API not supported', 'error');
+                return;
+            }
+            
+            log('Requesting permission...', 'info');
+            
+            Notification.requestPermission().then(result => {
+                log(`Permission result: ${result}`, result === 'granted' ? 'success' : 'error');
+                
+                if (result === 'granted') {
+                    log('✅ Permission granted! Now click "Show Test Notification"', 'success');
+                } else if (result === 'denied') {
+                    log('❌ Permission denied', 'error');
+                    log('Fix: Safari → Settings → Websites → Notifications → Allow', 'info');
+                } else {
+                    log('⚠️ Permission dismissed', 'info');
+                }
+                
+                checkSupport();
+            }).catch(err => {
+                log(`❌ Error: ${err.message}`, 'error');
+            });
+        }
+        
+        function showNotif() {
+            if (Notification.permission !== 'granted') {
+                log('❌ Permission not granted. Click "Request Permission" first.', 'error');
+                return;
+            }
+            
+            log('Creating notification...', 'info');
+            
+            try {
+                // Safari works best with minimal options
+                const notif = new Notification('🍎 Safari Test', {
+                    body: 'This is a test notification in Safari'
+                });
+                
+                notif.onshow = function() {
+                    log('✅ Notification shown on screen!', 'success');
+                };
+                
+                notif.onerror = function(err) {
+                    log(`❌ Notification error: ${err}`, 'error');
+                };
+                
+                notif.onclick = function() {
+                    log('Notification clicked', 'info');
+                    notif.close();
+                };
+                
+                log('✅ Notification created', 'success');
+            } catch (err) {
+                log(`❌ Error: ${err.message}`, 'error');
+            }
+        }
+        
+        // Auto-check on load
+        window.onload = function() {
+            log('🎉 Test page loaded', 'success');
+            log('💡 Step 1: Open Web Inspector (⌘⌥C)', 'info');
+            log('💡 Step 2: Click "Test Console Logging"', 'info');
+            log('💡 Step 3: Check Console tab in Web Inspector', 'info');
+            checkSupport();
+        };
+    </script>
+</body>
+</html>
