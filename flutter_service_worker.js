@@ -3,7 +3,7 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "aa5cc8fd613c40d33a8b67a78b03ef97",
+const RESOURCES = {"flutter_bootstrap.js": "86f211fee773788339650e1dcb79b692",
 "safari-brave-test.html": "cf17ba61eb2cf4fb0891795c138ec939",
 "version.json": "828ebb220b01406ba3ee6742ea91c5e2",
 "test-safari-console.html": "0934796972431ccb5640c7edcd3dda05",
@@ -12,7 +12,7 @@ const RESOURCES = {"flutter_bootstrap.js": "aa5cc8fd613c40d33a8b67a78b03ef97",
 "quick-dart-test.html": "2f1a13e3bbfcf13a8254bb3617decd72",
 "firestore-config.js": "f931dd0cac30e24cc702737ed0ae6909",
 "firebase-messaging-sw.js": "8ced9bb6aec93b36f151a1ec7486d963",
-"main.dart.js": "4bb7045b65171359c61a1acb6fd0c746",
+"main.dart.js": "248813064aa6fe99f9ebf991af84f2f3",
 "notification-diagnostic.html": "9b6094c58f5ecb10177272b30548d57c",
 "flutter.js": "888483df48293866f9f41d3d9274a779",
 "safari-quick-test.html": "89bc59f4498d95c68d9265275962c404",
